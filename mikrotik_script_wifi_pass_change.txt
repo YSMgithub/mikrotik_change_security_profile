@@ -1,0 +1,37 @@
+#  Тут можно задать имена профайов безопасности и необходимые часы
+###############################################################
+# name of security profile with password
+:local PROFILEDAY "profile1";
+:local PROFILENIGHT "default";
+
+# start time to encrypt network
+:local STARTTIME 8;
+
+# end time to encrypt network
+:local ENDTIME 18;
+
+###############################################################
+
+# get system time
+:local a [/sys clock get time];
+
+# get  current security profile
+:local SP [ /interface wireless get wlan1 security-profile];
+
+# eliminating extra zeros
+:put $a; 
+:local b {[pick $a 0]}; 
+:if ($b=0) do={:set b [:pick $a 1]} else={:set b [:pick $a 0 2]}; 
+:put $b; 
+
+# day time profile cheking
+:if ($b>=$STARTTIME and $b<$ENDTIME and $PROFILEDAY  != $SP) do={
+/interface wireless set [ find default-name=wlan1 ] security-profile=$PROFILEDAY; 
+:log info message="Wireless profile changed to $PROFILEDAY  (PASS)";
+};
+
+# night time profile cheking
+:if (($b<$STARTTIME or  $b>=$ENDTIME) and $PROFILENIGHT != $SP) do={
+/interface wireless set [ find default-name=wlan1 ] security-profile=$PROFILENIGHT; 
+:log info message="Wireless profile changed to $PROFILENIGHT (FREE)";
+};
